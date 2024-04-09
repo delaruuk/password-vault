@@ -1,8 +1,9 @@
 mod pentry;
 use crate::pentry::prompt;
 use crate::pentry::read_passwords_from_file;
+use crate::pentry::ServiceInfo;
 
-fn clr()) {
+fn clr() {
     println!("\x1B[2J\x1B[0;0H");
 }
 fn main() {
@@ -42,7 +43,7 @@ fn main() {
                 clr();
                 let services = read_passwords_from_file().unwrap_or_else(|error| {
                     eprintln!("Error reading passwords: {}", error);
-                    Vec::new();
+                    Vec::new()
                 });
                 for item in services {
                     println!("Service = {}
@@ -58,7 +59,7 @@ fn main() {
                 clr();
                 let services = read_passwords_from_file().unwrap_or_else(|error| {
                     eprintln!("Error reading passwords: {}", error);
-                    Vec::new();
+                    Vec::new()
                 });
                 let search = prompt("Search :");
                 for item in &services{
@@ -71,13 +72,12 @@ fn main() {
                             item.username,
                             item.password,
                             );
-                        )
                     }
                 }
             }
             "4" => {
                 clr();
-                println!("Goodby!")
+                println!("Goodbye!");
                 break;
             }
             _ => {

@@ -11,7 +11,7 @@ pub struct ServiceInfo {
     pub password: String,
 }
 impl ServiceInfo {
-    pub fn new(service: &str, username: &str, password: &str) -> Self {
+    pub fn new(service: String, username: String, password: String) -> Self {
         ServiceInfo {
             service,
             username,
@@ -41,15 +41,54 @@ impl ServiceInfo {
             .read_line(&mut password)
             .expect("Failed to read line");
 
-        ServiceInfo::new(service.trim().to_string(),
-                     username.trim().to_string(),
-                     password.trim().to_string()
-                    )
+        ServiceInfo::new
+            (service.trim().to_string(),
+             username.trim().to_string(),
+             password.trim().to_string()
+            )
     }
     pub fn to_json(&self) -> String {
-        serde_json::to_str(&self).expect("Failed to serialize JSON")
+        serde_json::to_string(&self).expect("Failed to serialize JSON")
     }
     pub fn write_to_file(&self) {
         let json_output = format!("{}\n", self.to_json());
+
+        match OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open("passwords.json")
+        {
+            Ok(mut file) => {
+               if let Err(e) = file.write_all(json_output.as_bytes()){
+                    eprintln!("Failed to write to file: {}", e);
+                } else {
+                    println!("successfully wrote to passwords.json");
+                }
+            }
+            Err(e) => eprintln!("Failed to open file: {}", e),
+        }
     }
+}
+
+pub fn read_passwords_from_file() -> Result<Vec<ServiceInfo>, io::Error> {
+    let file = File::open("passwords.json")?;
+    let reader = io::BufReader::new(file);
+    let mut services = Vec::new();
+
+    for line in reader.lines() {
+        if let Ok(json_string) = line {
+            if let Ok(service_info) = ServiceInfo::from_json(&json_string) {
+                services.push(service_info);
+            }
+        }
+    }
+    Ok(services)
+}
+
+pub fn prompt(prompt: &str) -> String {
+    print!("{}", prompt);
+    io::stdout().flush().unwrap();
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+    input.trim().to_string()
 }
